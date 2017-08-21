@@ -1,0 +1,51 @@
+ifndef G4_VERSION
+    G4_VERSION = 10.03.p02
+endif
+TARFILE = geant4.$(G4_VERSION).tar.gz
+G4DIR = geant4.$(G4_VERSION)
+
+which_cmake3 := $(shell which cmake3)
+find_cmake3 := $(findstring cmake3, $(which_cmake3))
+ifeq (,$(find_cmake3))
+    CMAKE = cmake
+else
+    CMAKE = cmake3
+endif
+
+all: $(G4DIR)/.make_install_done
+
+$(TARFILE):
+	wget http://geant4.web.cern.ch/geant4/support/source/$(TARFILE)
+
+$(G4DIR)/.untar_done: $(TARFILE)
+	tar zxf $(TARFILE)
+	date > $@
+
+$(G4DIR)/.configure_done: $(G4DIR)/.untar_done
+	mkdir -p $(G4DIR)/build
+	cd $(G4DIR)/build ; $(CMAKE) \
+	   -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	   -DCMAKE_INSTALL_DATADIR=../data \
+	   -DCMAKE_INSTALL_PREFIX=.. \
+	   -DGEANT4_BUILD_MULTITHREADED=OFF \
+	   -DGEANT4_INSTALL_DATA=ON \
+	   -DGEANT4_USE_GDML=ON \
+	   -DGEANT4_USE_NETWORKDAWN=ON \
+	   -DGEANT4_USE_OPENGL_X11=ON \
+	   -DGEANT4_USE_QT=ON \
+	   -DGEANT4_USE_RAYTRACER_X11=ON \
+	   -DGEANT4_USE_XM=ON \
+	   -DXERCESC_ROOT_DIR=$(XERCESCROOT) \
+	   ..
+	date > $@
+
+$(G4DIR)/.make_done: $(G4DIR)/.configure_done
+	cd $(G4DIR)/build ; make -j4
+	date > $@
+
+$(G4DIR)/.make_install_done: $(G4DIR)/.make_done
+	cd $(G4DIR)/build ; make install
+	date > $@
+
+help:
+	@echo untar target = $(G4DIR)/.untar_done

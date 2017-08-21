@@ -1,0 +1,86 @@
+ifndef ROOT_OF_ALL
+  export ROOT_OF_ALL=$(shell pwd)
+endif
+
+MACHINE_NAME = $(shell uname -m)
+
+CERNLIB = ${ROOT_OF_ALL}/cernlib
+CLHEP_TOP = ${ROOT_OF_ALL}/clhep
+ROOT = ${ROOT_OF_ALL}/root
+XERCES = ${ROOT_OF_ALL}/xerces-c
+GEANT4 = ${ROOT_OF_ALL}/geant4
+GSL = ${ROOT_OF_ALL}/gsl
+
+all: env xerces_build cernlib_build root_build clhep_build geant4_build gsl_build
+
+gluex: env xerces_build cernlib_build root_build geant4_build
+
+cernlib_build: cernlib_dir cernlib_make
+
+cernlib_dir:
+	test -d ${CERNLIB} || mkdir -pv ${CERNLIB}
+
+cernlib_make:
+ifneq ($(MACHINE_NAME),x86_64)
+	$(MAKE) -C${CERNLIB} -f${BUILD_SCRIPTS}/Makefile_cernlib
+else
+	$(MAKE) -C${CERNLIB} -f${BUILD_SCRIPTS}/Makefile_cernlib_Vogt
+endif
+
+cernlib_debug_build: cernlib_debug_dir cernlib_debug_make
+
+cernlib_debug_dir:
+	test -d ${CERNLIB}_debug || mkdir -pv ${CERNLIB}_debug
+
+cernlib_debug_make:
+ifneq ($(MACHINE_NAME),x86_64)
+	$(MAKE) -C${CERNLIB}_debug -f${BUILD_SCRIPTS}/Makefile_cernlib
+else
+	$(MAKE) -C${CERNLIB}_debug -f${BUILD_SCRIPTS}/Makefile_cernlib_Vogt DEBUG=true
+endif
+
+xerces_build: xerces_dir xerces_make
+
+xerces_dir:
+	test -d ${XERCES} || mkdir -pv ${XERCES}
+
+xerces_make:
+	$(MAKE) -C${XERCES} -f${BUILD_SCRIPTS}/Makefile_xercesc_3
+
+root_build: root_dir
+	    $(MAKE) -C${ROOT} -f${BUILD_SCRIPTS}/Makefile_root
+
+root_dir:
+	test -d ${ROOT} || mkdir -pv ${ROOT}
+
+
+
+clhep_build: clhep_dir clhep_make
+
+clhep_dir:
+	test -d ${CLHEP_TOP} || mkdir -pv ${CLHEP_TOP}
+
+clhep_make:
+	$(MAKE) -C${CLHEP_TOP} -f${BUILD_SCRIPTS}/Makefile_clhep
+
+
+geant4_build: geant4_dir geant4_make
+
+geant4_dir:
+	test -d ${GEANT4} || mkdir -pv ${GEANT4}
+
+geant4_make:
+	$(MAKE) -C$(GEANT4) -f$(BUILD_SCRIPTS)/Makefile_geant4
+
+gsl_build: gsl_dir gsl_make
+
+gsl_dir:
+	test -d ${GSL} || mkdir -pv ${GSL}
+
+gsl_make:
+	$(MAKE) -C$(GSL) -f$(BUILD_SCRIPTS)/Makefile_gsl
+
+env:
+	@echo BUILD_SCRIPTS = ${BUILD_SCRIPTS}
+	@echo HALLD = ${HALLD}
+	@echo ROOT_OF_ALL = ${ROOT_OF_ALL}

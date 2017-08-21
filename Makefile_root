@@ -1,0 +1,15 @@
+ifndef ROOT_VERSION
+    ROOT_VERSION=6.08.06
+endif
+
+TARFILE=root_v$(ROOT_VERSION).source.tar.gz
+PWD := $(shell pwd)
+ROOTSYS=$(PWD)/$(ROOTDIR)
+
+ROOT_MAJOR_VERSION := $(shell $(BUILD_SCRIPTS)/extract_version_numbers.pl major $(ROOT_VERSION))
+
+ifeq ($(ROOT_MAJOR_VERSION), 6)
+include $(BUILD_SCRIPTS)/Makefile_root_6_inc
+else
+include $(BUILD_SCRIPTS)/Makefile_root_5_inc
+endif
